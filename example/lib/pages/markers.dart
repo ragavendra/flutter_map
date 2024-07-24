@@ -13,6 +13,41 @@ class MarkerPage extends StatefulWidget {
   State<MarkerPage> createState() => _MarkerPageState();
 }
 
+enum Department {
+  treasury,
+  state
+}
+
+class MarkerWithTooltip extends StatefulWidget {
+  final Widget child;
+  final String tooltip;
+  final Function onTap;
+
+  MarkerWithTooltip({required this.child, required this.tooltip, required this.onTap});
+
+  @override
+  _MapMarkerState createState() => _MapMarkerState();
+}
+
+class _MapMarkerState extends State<MarkerWithTooltip> {
+  final key = new GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+        onTap: () {
+          final dynamic tooltip = key.currentState;
+          tooltip.ensureTooltipVisible();
+          widget.onTap();
+        },
+        child: Tooltip(
+          key: key,
+          message: widget.tooltip,
+          child: widget.child,
+        ));
+  }
+}
+
 class _MarkerPageState extends State<MarkerPage> {
   Alignment selectedAlignment = Alignment.topCenter;
   bool counterRotate = false;
@@ -30,8 +65,8 @@ class _MarkerPageState extends State<MarkerPage> {
   };
 
   late final customMarkers = <Marker>[
-    buildPin(const LatLng(51.51868093513547, -0.12835376940892318)),
-    buildPin(const LatLng(53.33360293799854, -6.284001062079881)),
+    buildPin(const LatLng(49.26475868576362, -122.9813778720856)),
+    buildPin(const LatLng(49.26455868576362, -122.98177778720856)),
   ];
 
   Marker buildPin(LatLng point) => Marker(
@@ -39,14 +74,17 @@ class _MarkerPageState extends State<MarkerPage> {
         width: 60,
         height: 60,
         child: GestureDetector(
-          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+          onTap: () => {},
+          // onTap: () => print('MyButton was tapped!'),
+          // onTap: () => () => ScaffoldMessenger.of(context).showMaterialBanner(const MaterialBanner(content: Text('You clicked here'), actions: [Text('widget data')],)),
+          /*.showSnackBar(
             const SnackBar(
               content: Text('Tapped existing marker'),
               duration: Duration(seconds: 1),
               showCloseIcon: true,
             ),
-          ),
-          child: const Icon(Icons.location_pin, size: 60, color: Colors.black),
+          ),*/
+          child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
         ),
       );
 
@@ -117,9 +155,9 @@ class _MarkerPageState extends State<MarkerPage> {
           Flexible(
             child: FlutterMap(
               options: MapOptions(
-                initialCenter: const LatLng(51.5, -0.09),
-                initialZoom: 5,
-                onTap: (_, p) => setState(() => customMarkers.add(buildPin(p))),
+                initialCenter: const LatLng(49.26456868576362, -122.98178778720856),
+                initialZoom: 16,
+                //onTap: (_, p) => setState(() => customMarkers.add(buildPin(p))),
                 interactionOptions: const InteractionOptions(
                   flags: ~InteractiveFlag.doubleTapZoom,
                 ),

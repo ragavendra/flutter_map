@@ -34,8 +34,8 @@ class _HomePageState extends State<HomePage> {
         children: [
           FlutterMap(
             options: MapOptions(
-              initialCenter: const LatLng(51.5, -0.09),
-              initialZoom: 5,
+              initialCenter: const LatLng(49.28, -123.023),
+              initialZoom: 16,
               cameraConstraint: CameraConstraint.contain(
                 bounds: LatLngBounds(
                   const LatLng(-90, -180),
