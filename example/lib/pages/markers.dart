@@ -48,9 +48,36 @@ class _MapMarkerState extends State<MarkerWithTooltip> {
   }
 }
 
+class MapMarker extends StatefulWidget {
+  // final X x;
+
+  // MapMarker(this.x);
+  MapMarker();
+
+  @override
+  _MapMarkerState createState() => _MapMarkerState();
+}
+
 class _MarkerPageState extends State<MarkerPage> {
   Alignment selectedAlignment = Alignment.topCenter;
   bool counterRotate = false;
+
+  bool popupShown = false;
+
+  /// The Main Marker
+    Container testMarkerContainer = new Container(
+      child: new GestureDetector(
+        behavior:  HitTestBehavior.opaque,
+        child:  new Icon(Icons.location_on, size: 20.0,
+              color: Colors.orange),
+        onTap: () { /// So we want to display the marker if tapped
+          // popupShown = true;
+          // setState(() => {});
+        },)
+
+    );
+
+  // final key = new GlobalKey();
 
   static const alignments = {
     315: Alignment.topLeft,
@@ -69,23 +96,61 @@ class _MarkerPageState extends State<MarkerPage> {
     buildPin(const LatLng(49.26455868576362, -122.98177778720856)),
   ];
 
+  var tooltip = const Tooltip(
+    message: 'Msg here',
+    // key: GlobalKey(),
+  );
+
   Marker buildPin(LatLng point) => Marker(
         point: point,
         width: 60,
         height: 60,
-        child: GestureDetector(
+        child:/*
+        Tooltip(
+          key: new GlobalKey(),
+          message: ' yes',
+          // textStyle: TextStyle(),
+          padding: EdgeInsets.fromLTRB(10, 10, 10, 15),
+          decoration: BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Container(
+            /*child: SvgPicture.asset(
+              'assets/svg/map_mark_green_icon.svg',
+            ),*/
+            child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
+          ),
+        ),*/
+
+              MarkerWithTooltip(
+                child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
+                // Image.asset('marker.png'),
+                tooltip: point.hashCode.toString() + " the tooltip text",
+                onTap: () => {
+                  /*ScaffoldMessenger.of(context)
+                // .showMaterialBanner(MaterialBanner(content: tooltip, actions: const []))
+
+                .showSnackBar(const SnackBar(
+                  content: Text(' is the hash'),
+                  duration: Duration(seconds: 1),
+                  showCloseIcon: true,))*/
+                  Text('txt here')
+                  },
+                  )
+        // }
+        /*GestureDetector(
           onTap: () => {},
           // onTap: () => print('MyButton was tapped!'),
           // onTap: () => () => ScaffoldMessenger.of(context).showMaterialBanner(const MaterialBanner(content: Text('You clicked here'), actions: [Text('widget data')],)),
-          /*.showSnackBar(
+          /_/.showSnackBar(
             const SnackBar(
               content: Text('Tapped existing marker'),
               duration: Duration(seconds: 1),
               showCloseIcon: true,
             ),
-          ),*/
+          ),/_/
           child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
-        ),
+        ),*/
       );
 
   @override
@@ -155,7 +220,8 @@ class _MarkerPageState extends State<MarkerPage> {
           Flexible(
             child: FlutterMap(
               options: MapOptions(
-                initialCenter: const LatLng(49.26456868576362, -122.98178778720856),
+                initialCenter:
+                    const LatLng(49.26456868576362, -122.98178778720856),
                 initialZoom: 16,
                 //onTap: (_, p) => setState(() => customMarkers.add(buildPin(p))),
                 interactionOptions: const InteractionOptions(
