@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_example/misc/tile_providers.dart';
 import 'package:flutter_map_example/widgets/drawer/menu_drawer.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MarkerPage extends StatefulWidget {
   static const String route = '/markers';
@@ -13,17 +14,13 @@ class MarkerPage extends StatefulWidget {
   State<MarkerPage> createState() => _MarkerPageState();
 }
 
-enum Department {
-  treasury,
-  state
-}
-
 class MarkerWithTooltip extends StatefulWidget {
   final Widget child;
   final String tooltip;
   final Function onTap;
 
-  MarkerWithTooltip({required this.child, required this.tooltip, required this.onTap});
+  MarkerWithTooltip(
+      {required this.child, required this.tooltip, required this.onTap});
 
   @override
   _MapMarkerState createState() => _MapMarkerState();
@@ -48,14 +45,61 @@ class _MapMarkerState extends State<MarkerWithTooltip> {
   }
 }
 
-class MapMarker extends StatefulWidget {
-  // final X x;
+class UserLocation{
 
-  // MapMarker(this.x);
-  MapMarker();
+  // final LatLng latLng;
 
-  @override
-  _MapMarkerState createState() => _MapMarkerState();
+  UserLocation() {
+    // latLng = _determinePosition();
+  }
+
+  // LatLng latLng = new LatLng(0, 0);
+
+  /// Determine the current position of the device.
+  ///
+  /// When the location services are not enabled or permissions
+  /// are denied the `Future` will return an error.
+  Future<LatLng> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services.
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now.
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    // return
+    var position = await Geolocator.getCurrentPosition();
+    // latLng = new LatLng(position.latitude, position.longitude);
+    return new LatLng(position.latitude, position.longitude);
+  }
+
+    // Future<Position> pos;
 }
 
 class _MarkerPageState extends State<MarkerPage> {
@@ -65,19 +109,16 @@ class _MarkerPageState extends State<MarkerPage> {
   bool popupShown = false;
 
   /// The Main Marker
-    Container testMarkerContainer = new Container(
+  Container testMarkerContainer = new Container(
       child: new GestureDetector(
-        behavior:  HitTestBehavior.opaque,
-        child:  new Icon(Icons.location_on, size: 20.0,
-              color: Colors.orange),
-        onTap: () { /// So we want to display the marker if tapped
-          // popupShown = true;
-          // setState(() => {});
-        },)
-
-    );
-
-  // final key = new GlobalKey();
+    behavior: HitTestBehavior.opaque,
+    child: new Icon(Icons.location_on, size: 20.0, color: Colors.orange),
+    onTap: () {
+      /// So we want to display the marker if tapped
+      // popupShown = true;
+      // setState(() => {});
+    },
+  ));
 
   static const alignments = {
     315: Alignment.topLeft,
@@ -101,55 +142,89 @@ class _MarkerPageState extends State<MarkerPage> {
     // key: GlobalKey(),
   );
 
+Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services.
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now.
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    // return
+    // var position =
+    return await Geolocator.getCurrentPosition();
+    // latLng = new LatLng(position.latitude, position.longitude);
+    // return new LatLng(position.latitude, position.longitude);
+  }
+
+  LatLng _latLng = LatLng(0,0);
+  Future<Position> _position = Future<Position>.value(Position(longitude: 0, latitude: 0,
+   timestamp: DateTime(2024), accuracy: 0, altitude: 0, altitudeAccuracy: 0, heading: 0,
+    headingAccuracy: 0, speed: 0, speedAccuracy: 0));
+
+  @override
+  void initState() {
+    super.initState();
+    _position = _determinePosition();
+
+    /* _position =
+    _determinePosition().then((val) {
+        _position = val;
+    });
+    _determinePosition().then((LatLng val) {
+      _latLng = val;
+    });*/
+  }
+
+    void _retry() {
+    setState(() {
+      _position = _determinePosition();
+    });
+  }
+
   Marker buildPin(LatLng point) => Marker(
         point: point,
-        width: 60,
-        height: 60,
-        child:/*
-        Tooltip(
-          key: new GlobalKey(),
-          message: ' yes',
-          // textStyle: TextStyle(),
-          padding: EdgeInsets.fromLTRB(10, 10, 10, 15),
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: Container(
-            /*child: SvgPicture.asset(
-              'assets/svg/map_mark_green_icon.svg',
-            ),*/
+        child: MarkerWithTooltip(
             child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
-          ),
-        ),*/
-
-              MarkerWithTooltip(
-                child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
-                // Image.asset('marker.png'),
-                tooltip: point.hashCode.toString() + " the tooltip text",
-                onTap: () => {
-                  /*ScaffoldMessenger.of(context)
-                // .showMaterialBanner(MaterialBanner(content: tooltip, actions: const []))
-
-                .showSnackBar(const SnackBar(
-                  content: Text(' is the hash'),
-                  duration: Duration(seconds: 1),
-                  showCloseIcon: true,))*/
-                  Text('txt here')
-                  },
-                  )
-        // }
-        /*GestureDetector(
-          onTap: () => {},
-          // onTap: () => print('MyButton was tapped!'),
-          // onTap: () => () => ScaffoldMessenger.of(context).showMaterialBanner(const MaterialBanner(content: Text('You clicked here'), actions: [Text('widget data')],)),
-          /_/.showSnackBar(
-            const SnackBar(
-              content: Text('Tapped existing marker'),
-              duration: Duration(seconds: 1),
-              showCloseIcon: true,
-            ),
-          ),/_/
-          child: const Icon(Icons.location_pin, size: 40, color: Colors.teal),
+            tooltip: "the tooltip text",
+            onTap: () => {}),
+        // ),
+        /*
+            IconButton(
+          icon: Icon(Icons.location_pin, size: 40, color: Colors.teal),
+          tooltip: 'Navigation menu ' + point.hashCode.toString(),
+          onPressed: () => {
+            const Tooltip(
+              message: 'Tooltip msg here',
+              decoration: BoxDecoration(color: Colors.amber),
+            )
+          },
         ),*/
       );
 
@@ -218,10 +293,30 @@ class _MarkerPageState extends State<MarkerPage> {
             ),
           ),
           Flexible(
-            child: FlutterMap(
+            child: FutureBuilder<Position>(
+          future: _position,
+          builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
+            if (!snapshot.hasData) {
+              // while data is loading:
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              // data loaded:
+              final androidDeviceInfo = snapshot.data;
+              print('Locn is ${androidDeviceInfo?.latitude} and ${androidDeviceInfo?.longitude} ');
+              /*return Center(
+                child: Text('Android version: ${androidDeviceInfo?.latitude.toString()}'),
+              );*/
+              return
+        FlutterMap(
               options: MapOptions(
                 initialCenter:
-                    const LatLng(49.26456868576362, -122.98178778720856),
+                    // const LatLng(49.26456868576362, -122.98178778720856),
+                    // _latLng,
+                    LatLng(androidDeviceInfo!.latitude, androidDeviceInfo.longitude),
+                    // LatLng(_position.latitude, _position.longitude)
+                    // center_,
                 initialZoom: 16,
                 //onTap: (_, p) => setState(() => customMarkers.add(buildPin(p))),
                 interactionOptions: const InteractionOptions(
@@ -272,8 +367,18 @@ class _MarkerPageState extends State<MarkerPage> {
                   alignment: selectedAlignment,
                 ),
               ],
-            ),
-          ),
+            );
+            //,
+
+            }
+          },
+        ),
+        /*IconButton(
+          icon: Icons.circle,
+          onPressed: _retry,
+          child: Text('Retry'),
+        )*/
+         ),
         ],
       ),
     );

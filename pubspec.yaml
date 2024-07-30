@@ -27,10 +27,12 @@ environment:
 
 dependencies:
   async: ^2.11.0
+  baseflow_plugin_template: ^2.1.2
   collection: ^1.18.0
   dart_earcut: ^1.1.0
   flutter:
     sdk: flutter
+  geolocator: ^11.1.0
   http: ^1.2.1
   latlong2: ^0.9.1
   logger: ^2.0.0
